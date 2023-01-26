@@ -1,0 +1,37 @@
+syntax = "proto3";
+package arkeonetwork.arkdrop.claim;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/ArkeoNetwork/arkdrop/x/claim/types";
+
+enum Action {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  ActionVote = 0;
+  ActionDelegateStake = 1;
+}
+
+// A Claim Records is the metadata of claim data per address
+message ClaimRecord {
+  // arkeo address of claim user
+  string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
+  string addressEth = 2 [ (gogoproto.moretags) = "yaml:\"addressEth\"" ];
+  string addressThor = 3 [ (gogoproto.moretags) = "yaml:\"addressThor\"" ];
+
+
+  // total initial claimable amount for the user
+  repeated cosmos.base.v1beta1.Coin initial_claimable_amount = 4 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"initial_claimable_amount\""
+  ];
+
+  // true if action is completed
+  // index of bool in array refers to action enum #
+  repeated bool action_completed = 5 [
+    (gogoproto.moretags) = "yaml:\"action_completed\"",
+    (gogoproto.nullable) = false
+  ];
+}
