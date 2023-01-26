@@ -106,6 +106,7 @@ import (
 	arkdropmodule "github.com/ArkeoNetwork/arkdrop/x/arkdrop"
 	arkdropmodulekeeper "github.com/ArkeoNetwork/arkdrop/x/arkdrop/keeper"
 	arkdropmoduletypes "github.com/ArkeoNetwork/arkdrop/x/arkdrop/types"
+
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	appparams "github.com/ArkeoNetwork/arkdrop/app/params"
@@ -113,7 +114,7 @@ import (
 )
 
 const (
-	AccountAddressPrefix = "cosmos"
+	AccountAddressPrefix = "arkeo"
 	Name                 = "arkdrop"
 )
 
