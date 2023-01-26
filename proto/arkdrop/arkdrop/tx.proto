@@ -1,0 +1,7 @@
+syntax = "proto3";
+package arkeonetwork.arkdrop.arkdrop;
+
+option go_package = "github.com/ArkeoNetwork/arkdrop/x/arkdrop/types";
+
+// Msg defines the Msg service.
+service Msg {}

@@ -1,0 +1,12 @@
+syntax = "proto3";
+package arkeonetwork.arkdrop.arkdrop;
+
+import "gogoproto/gogo.proto";
+import "arkdrop/arkdrop/params.proto";
+
+option go_package = "github.com/ArkeoNetwork/arkdrop/x/arkdrop/types";
+
+// GenesisState defines the arkdrop module's genesis state.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+}
