@@ -31,12 +31,12 @@ func TestGetClaimRecord(t *testing.T) {
 		{
 			Address:                addr1.String(),
 			InitialClaimableAmount: sdk.NewCoins(sdk.NewInt64Coin(types.DefaultClaimDenom, 100)),
-			ActionCompleted:        []bool{false, false, false, false},
+			ActionCompleted:        []bool{false, false},
 		},
 		{
 			Address:                addr2.String(),
 			InitialClaimableAmount: sdk.NewCoins(sdk.NewInt64Coin(types.DefaultClaimDenom, 200)),
-			ActionCompleted:        []bool{false, false, false, false},
+			ActionCompleted:        []bool{false, false},
 		},
 	}
 	err := keeper.SetClaimRecords(ctx, claimRecords)
