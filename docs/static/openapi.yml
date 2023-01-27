@@ -124,6 +124,17 @@ paths:
               params:
                 description: params holds all the parameters of this module.
                 type: object
+                properties:
+                  airdrop_start_time:
+                    type: string
+                    format: date-time
+                  duration_until_decay:
+                    type: string
+                  duration_of_decay:
+                    type: string
+                  claim_denom:
+                    type: string
+                    title: denom of claimable asset
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -45779,6 +45790,17 @@ definitions:
     title: A Claim Records is the metadata of claim data per address
   arkeonetwork.arkdrop.claim.Params:
     type: object
+    properties:
+      airdrop_start_time:
+        type: string
+        format: date-time
+      duration_until_decay:
+        type: string
+      duration_of_decay:
+        type: string
+      claim_denom:
+        type: string
+        title: denom of claimable asset
     description: Params defines the parameters for the module.
   arkeonetwork.arkdrop.claim.QueryClaimRecordResponse:
     type: object
@@ -45825,6 +45847,17 @@ definitions:
       params:
         description: params holds all the parameters of this module.
         type: object
+        properties:
+          airdrop_start_time:
+            type: string
+            format: date-time
+          duration_until_decay:
+            type: string
+          duration_of_decay:
+            type: string
+          claim_denom:
+            type: string
+            title: denom of claimable asset
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   cosmos.base.v1beta1.Coin:
     type: object

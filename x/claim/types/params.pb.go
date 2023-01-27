@@ -7,15 +7,20 @@ import (
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
+	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
+	_ "google.golang.org/protobuf/types/known/durationpb"
+	_ "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
+	time "time"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
+var _ = time.Kitchen
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -25,10 +30,16 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params defines the parameters for the module.
 type Params struct {
+	AirdropStartTime   time.Time     `protobuf:"bytes,1,opt,name=airdrop_start_time,json=airdropStartTime,proto3,stdtime" json:"airdrop_start_time" yaml:"airdrop_start_time"`
+	DurationUntilDecay time.Duration `protobuf:"bytes,2,opt,name=duration_until_decay,json=durationUntilDecay,proto3,stdduration" json:"duration_until_decay,omitempty" yaml:"duration_until_decay"`
+	DurationOfDecay    time.Duration `protobuf:"bytes,3,opt,name=duration_of_decay,json=durationOfDecay,proto3,stdduration" json:"duration_of_decay,omitempty" yaml:"duration_of_decay"`
+	// denom of claimable asset
+	ClaimDenom string `protobuf:"bytes,4,opt,name=claim_denom,json=claimDenom,proto3" json:"claim_denom,omitempty"`
 }
 
-func (m *Params) Reset()      { *m = Params{} }
-func (*Params) ProtoMessage() {}
+func (m *Params) Reset()         { *m = Params{} }
+func (m *Params) String() string { return proto.CompactTextString(m) }
+func (*Params) ProtoMessage()    {}
 func (*Params) Descriptor() ([]byte, []int) {
 	return fileDescriptor_abb1d88e78faa882, []int{0}
 }
@@ -59,6 +70,34 @@ func (m *Params) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Params proto.InternalMessageInfo
 
+func (m *Params) GetAirdropStartTime() time.Time {
+	if m != nil {
+		return m.AirdropStartTime
+	}
+	return time.Time{}
+}
+
+func (m *Params) GetDurationUntilDecay() time.Duration {
+	if m != nil {
+		return m.DurationUntilDecay
+	}
+	return 0
+}
+
+func (m *Params) GetDurationOfDecay() time.Duration {
+	if m != nil {
+		return m.DurationOfDecay
+	}
+	return 0
+}
+
+func (m *Params) GetClaimDenom() string {
+	if m != nil {
+		return m.ClaimDenom
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*Params)(nil), "arkeonetwork.arkdrop.claim.Params")
 }
@@ -66,17 +105,32 @@ func init() {
 func init() { proto.RegisterFile("arkdrop/claim/params.proto", fileDescriptor_abb1d88e78faa882) }
 
 var fileDescriptor_abb1d88e78faa882 = []byte{
-	// 159 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0x4a, 0x2c, 0xca, 0x4e,
-	0x29, 0xca, 0x2f, 0xd0, 0x4f, 0xce, 0x49, 0xcc, 0xcc, 0xd5, 0x2f, 0x48, 0x2c, 0x4a, 0xcc, 0x2d,
-	0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x02, 0xc9, 0xa5, 0xe6, 0xe7, 0xa5, 0x96, 0x94, 0xe7,
-	0x17, 0x65, 0xeb, 0x41, 0x15, 0xea, 0x81, 0x15, 0x4a, 0x89, 0xa4, 0xe7, 0xa7, 0xe7, 0x83, 0x95,
-	0xe9, 0x83, 0x58, 0x10, 0x1d, 0x4a, 0x7c, 0x5c, 0x6c, 0x01, 0x60, 0x13, 0xac, 0x58, 0x66, 0x2c,
-	0x90, 0x67, 0x70, 0x72, 0x3f, 0xf1, 0x48, 0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6, 0x07, 0x8f, 0xe4,
-	0x18, 0x27, 0x3c, 0x96, 0x63, 0xb8, 0xf0, 0x58, 0x8e, 0xe1, 0xc6, 0x63, 0x39, 0x86, 0x28, 0xdd,
-	0xf4, 0xcc, 0x92, 0x8c, 0xd2, 0x24, 0xbd, 0xe4, 0xfc, 0x5c, 0x7d, 0x47, 0x90, 0x35, 0x7e, 0x10,
-	0x6b, 0xf4, 0x61, 0xee, 0xa9, 0x80, 0xba, 0xa8, 0xa4, 0xb2, 0x20, 0xb5, 0x38, 0x89, 0x0d, 0x6c,
-	0xbe, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0x05, 0x20, 0xcc, 0x87, 0xaf, 0x00, 0x00, 0x00,
+	// 391 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x92, 0x31, 0x4b, 0xf3, 0x40,
+	0x1c, 0xc6, 0x73, 0x6f, 0x5f, 0x0a, 0x6f, 0x3a, 0xbc, 0x1a, 0x3a, 0xa4, 0x29, 0x5c, 0x4a, 0x40,
+	0xe8, 0xa0, 0x09, 0xe8, 0xe6, 0x66, 0x2d, 0x88, 0x8b, 0x4a, 0xd5, 0xc5, 0x25, 0x5c, 0x9b, 0x6b,
+	0x0c, 0xcd, 0xe5, 0xc2, 0xe5, 0x82, 0xe6, 0x2b, 0x38, 0x75, 0x12, 0x3f, 0x8e, 0x63, 0xc7, 0x8e,
+	0x4e, 0x51, 0xda, 0xcd, 0xb1, 0x9f, 0x40, 0xee, 0x92, 0x08, 0xb6, 0x05, 0xb7, 0xe4, 0xff, 0x3c,
+	0xcf, 0xff, 0xff, 0x3b, 0x78, 0x54, 0x03, 0xb1, 0x89, 0xc7, 0x68, 0xec, 0x8c, 0x42, 0x14, 0x10,
+	0x27, 0x46, 0x0c, 0x91, 0xc4, 0x8e, 0x19, 0xe5, 0x54, 0x13, 0x1a, 0xa6, 0x11, 0xe6, 0x0f, 0x94,
+	0x4d, 0xec, 0xd2, 0x68, 0x4b, 0xa3, 0xd1, 0xf4, 0xa9, 0x4f, 0xa5, 0xcd, 0x11, 0x5f, 0x45, 0xc2,
+	0x80, 0x3e, 0xa5, 0x7e, 0x88, 0x1d, 0xf9, 0x37, 0x4c, 0xc7, 0x8e, 0x97, 0x32, 0xc4, 0x03, 0x1a,
+	0x95, 0xba, 0xb9, 0xae, 0xf3, 0x80, 0xe0, 0x84, 0x23, 0x12, 0x17, 0x06, 0xeb, 0xb5, 0xa6, 0xd6,
+	0xaf, 0x24, 0x83, 0x46, 0x55, 0x0d, 0x05, 0x4c, 0x9c, 0x74, 0x13, 0x8e, 0x18, 0x77, 0x85, 0x57,
+	0x07, 0x1d, 0xd0, 0x6d, 0x1c, 0x1a, 0x76, 0xb1, 0xc8, 0xae, 0x16, 0xd9, 0x37, 0xd5, 0xa2, 0xde,
+	0xde, 0x2c, 0x37, 0x95, 0x55, 0x6e, 0xb6, 0x32, 0x44, 0xc2, 0x63, 0x6b, 0x73, 0x87, 0x35, 0x7d,
+	0x37, 0xc1, 0x60, 0xa7, 0x14, 0xae, 0xc5, 0x5c, 0xa4, 0xb5, 0x67, 0xa0, 0x36, 0x2b, 0x5e, 0x37,
+	0x8d, 0x78, 0x10, 0xba, 0x1e, 0x1e, 0xa1, 0x4c, 0xff, 0x23, 0x6f, 0xb6, 0x36, 0x6e, 0xf6, 0x4b,
+	0x73, 0xef, 0x5c, 0x9c, 0xfc, 0xcc, 0x4d, 0xb8, 0x2d, 0xbe, 0x4f, 0x49, 0xc0, 0x31, 0x89, 0x79,
+	0xb6, 0xca, 0xcd, 0x76, 0x01, 0xb5, 0xcd, 0x67, 0xbd, 0x08, 0x2c, 0xad, 0x92, 0x6e, 0x85, 0xd2,
+	0x17, 0x82, 0xf6, 0x04, 0xd4, 0xdd, 0xef, 0x04, 0x1d, 0x97, 0x54, 0xb5, 0xdf, 0xa8, 0x4e, 0x4b,
+	0xaa, 0xf6, 0x46, 0xf6, 0x07, 0x92, 0xbe, 0x86, 0x54, 0x99, 0x0a, 0x9e, 0xff, 0xd5, 0xfc, 0x72,
+	0x5c, 0xc0, 0x98, 0x6a, 0x43, 0x36, 0xc0, 0xf5, 0x70, 0x44, 0x89, 0xfe, 0xb7, 0x03, 0xba, 0xff,
+	0x06, 0xaa, 0x1c, 0xf5, 0xc5, 0xa4, 0x77, 0x36, 0x5b, 0x40, 0x30, 0x5f, 0x40, 0xf0, 0xb1, 0x80,
+	0x60, 0xba, 0x84, 0xca, 0x7c, 0x09, 0x95, 0xb7, 0x25, 0x54, 0xee, 0x0e, 0xfc, 0x80, 0xdf, 0xa7,
+	0x43, 0x7b, 0x44, 0x89, 0x73, 0x22, 0xaa, 0x75, 0x51, 0x54, 0xcb, 0xa9, 0x3a, 0xf8, 0x58, 0xb6,
+	0x90, 0x67, 0x31, 0x4e, 0x86, 0x75, 0xf9, 0xa4, 0xa3, 0xaf, 0x00, 0x00, 0x00, 0xff, 0xff, 0xef,
+	0x90, 0xbc, 0x99, 0xa3, 0x02, 0x00, 0x00,
 }
 
 func (m *Params) Marshal() (dAtA []byte, err error) {
@@ -99,6 +153,37 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.ClaimDenom) > 0 {
+		i -= len(m.ClaimDenom)
+		copy(dAtA[i:], m.ClaimDenom)
+		i = encodeVarintParams(dAtA, i, uint64(len(m.ClaimDenom)))
+		i--
+		dAtA[i] = 0x22
+	}
+	n1, err1 := github_com_gogo_protobuf_types.StdDurationMarshalTo(m.DurationOfDecay, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdDuration(m.DurationOfDecay):])
+	if err1 != nil {
+		return 0, err1
+	}
+	i -= n1
+	i = encodeVarintParams(dAtA, i, uint64(n1))
+	i--
+	dAtA[i] = 0x1a
+	n2, err2 := github_com_gogo_protobuf_types.StdDurationMarshalTo(m.DurationUntilDecay, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdDuration(m.DurationUntilDecay):])
+	if err2 != nil {
+		return 0, err2
+	}
+	i -= n2
+	i = encodeVarintParams(dAtA, i, uint64(n2))
+	i--
+	dAtA[i] = 0x12
+	n3, err3 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.AirdropStartTime, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.AirdropStartTime):])
+	if err3 != nil {
+		return 0, err3
+	}
+	i -= n3
+	i = encodeVarintParams(dAtA, i, uint64(n3))
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -119,6 +204,16 @@ func (m *Params) Size() (n int) {
 	}
 	var l int
 	_ = l
+	l = github_com_gogo_protobuf_types.SizeOfStdTime(m.AirdropStartTime)
+	n += 1 + l + sovParams(uint64(l))
+	l = github_com_gogo_protobuf_types.SizeOfStdDuration(m.DurationUntilDecay)
+	n += 1 + l + sovParams(uint64(l))
+	l = github_com_gogo_protobuf_types.SizeOfStdDuration(m.DurationOfDecay)
+	n += 1 + l + sovParams(uint64(l))
+	l = len(m.ClaimDenom)
+	if l > 0 {
+		n += 1 + l + sovParams(uint64(l))
+	}
 	return n
 }
 
@@ -157,6 +252,137 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: Params: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AirdropStartTime", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(&m.AirdropStartTime, dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DurationUntilDecay", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(&m.DurationUntilDecay, dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DurationOfDecay", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(&m.DurationOfDecay, dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ClaimDenom", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ClaimDenom = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipParams(dAtA[iNdEx:])
