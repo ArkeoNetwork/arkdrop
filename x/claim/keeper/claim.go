@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"strings"
+
 	"github.com/ArkeoNetwork/arkdrop/x/claim/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,17 +12,16 @@ import (
 // SetClaimRecord sets a claim record for an address in store
 func (k Keeper) SetClaimRecord(ctx sdk.Context, claimRecord types.ClaimRecord) error {
 	store := ctx.KVStore(k.storeKey)
-	prefixStore := prefix.NewStore(store, []byte(types.ClaimRecordsStorePrefix))
+	prefixStore := prefix.NewStore(store, chainToStorePrefix(claimRecord.Chain))
 
 	bz, err := proto.Marshal(&claimRecord)
 	if err != nil {
 		return err
 	}
 
-	addr, err := sdk.AccAddressFromBech32(claimRecord.Address)
-	if err != nil {
-		return err
-	}
+	addr := []byte(strings.ToLower(claimRecord.Address))
+	// TODO: should we check validity of address here? would be good to validate
+	// based on the chain.
 
 	prefixStore.Set(addr, bz)
 	return nil
@@ -38,9 +39,9 @@ func (k Keeper) SetClaimRecords(ctx sdk.Context, claimRecords []types.ClaimRecor
 }
 
 // GetClaimables get claimables for genesis export
-func (k Keeper) GetClaimRecords(ctx sdk.Context) []types.ClaimRecord {
+func (k Keeper) GetClaimRecords(ctx sdk.Context, chain types.Chain) []types.ClaimRecord {
 	store := ctx.KVStore(k.storeKey)
-	prefixStore := prefix.NewStore(store, []byte(types.ClaimRecordsStorePrefix))
+	prefixStore := prefix.NewStore(store, chainToStorePrefix(chain))
 
 	iterator := prefixStore.Iterator(nil, nil)
 	defer iterator.Close()
@@ -61,13 +62,14 @@ func (k Keeper) GetClaimRecords(ctx sdk.Context) []types.ClaimRecord {
 }
 
 // GetClaimRecord returns the claim record for a specific address
-func (k Keeper) GetClaimRecord(ctx sdk.Context, addr sdk.AccAddress) (types.ClaimRecord, error) {
+func (k Keeper) GetClaimRecord(ctx sdk.Context, addr string, chain types.Chain) (types.ClaimRecord, error) {
 	store := ctx.KVStore(k.storeKey)
-	prefixStore := prefix.NewStore(store, []byte(types.ClaimRecordsStorePrefix))
-	if !prefixStore.Has(addr) {
+	prefixStore := prefix.NewStore(store, chainToStorePrefix(chain))
+	addrBytes := []byte(strings.ToLower(addr))
+	if !prefixStore.Has(addrBytes) {
 		return types.ClaimRecord{}, nil
 	}
-	bz := prefixStore.Get(addr)
+	bz := prefixStore.Get(addrBytes)
 
 	claimRecord := types.ClaimRecord{}
 	err := proto.Unmarshal(bz, &claimRecord)
@@ -78,9 +80,9 @@ func (k Keeper) GetClaimRecord(ctx sdk.Context, addr sdk.AccAddress) (types.Clai
 	return claimRecord, nil
 }
 
-// GetClaimable returns claimable amount for a specific action done by an address
-func (k Keeper) GetUserTotalClaimable(ctx sdk.Context, addr sdk.AccAddress) (sdk.Coins, error) {
-	claimRecord, err := k.GetClaimRecord(ctx, addr)
+// GetUserTotalClaimable returns the total claimable amount for an address
+func (k Keeper) GetUserTotalClaimable(ctx sdk.Context, addr string, chain types.Chain) (sdk.Coins, error) {
+	claimRecord, err := k.GetClaimRecord(ctx, addr, chain)
 	if err != nil {
 		return sdk.Coins{}, err
 	}
@@ -89,9 +91,8 @@ func (k Keeper) GetUserTotalClaimable(ctx sdk.Context, addr sdk.AccAddress) (sdk
 	}
 
 	totalClaimable := sdk.Coins{}
-
 	for action := range types.Action_name {
-		claimableForAction, err := k.GetClaimableAmountForAction(ctx, addr, types.Action(action))
+		claimableForAction, err := k.GetClaimableAmountForAction(ctx, addr, types.Action(action), chain)
 		if err != nil {
 			return sdk.Coins{}, err
 		}
@@ -101,8 +102,8 @@ func (k Keeper) GetUserTotalClaimable(ctx sdk.Context, addr sdk.AccAddress) (sdk
 }
 
 // GetClaimable returns claimable amount for a specific action done by an address
-func (k Keeper) GetClaimableAmountForAction(ctx sdk.Context, addr sdk.AccAddress, action types.Action) (sdk.Coins, error) {
-	claimRecord, err := k.GetClaimRecord(ctx, addr)
+func (k Keeper) GetClaimableAmountForAction(ctx sdk.Context, addr string, action types.Action, chain types.Chain) (sdk.Coins, error) {
+	claimRecord, err := k.GetClaimRecord(ctx, addr, chain)
 	if err != nil {
 		return nil, err
 	}
@@ -204,3 +205,16 @@ func (k Keeper) GetClaimableAmountForAction(ctx sdk.Context, addr sdk.AccAddress
 // 	amt := k.GetModuleAccountBalance(ctx)
 // 	return k.distrKeeper.FundCommunityPool(ctx, sdk.NewCoins(amt), moduleAccAddr)
 // }
+
+func chainToStorePrefix(chain types.Chain) []byte {
+	switch chain {
+	case types.ARKEO:
+		return []byte(types.ClaimRecordsArkeoStorePrefix)
+	case types.ETHEREUM:
+		return []byte(types.ClaimRecordsEthStorePrefix)
+	case types.THORCHAIN:
+		return []byte(types.ClaimRecordsThorStorePrefix)
+	default:
+		return []byte{}
+	}
+}

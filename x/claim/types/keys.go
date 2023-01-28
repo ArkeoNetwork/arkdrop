@@ -13,8 +13,14 @@ const (
 	// MemStoreKey defines the in-memory store key
 	MemStoreKey = "mem_claim"
 
-	// ClaimRecordsStorePrefix defines the store prefix for the claim records
-	ClaimRecordsStorePrefix = "claimrecords"
+	// ClaimRecordsStorePrefix defines the store prefix for the claim records (by arkeo address)
+	ClaimRecordsArkeoStorePrefix = "claimrecordsarkeo"
+
+	// ClaimRecordsStorePrefix defines the store prefix for the claim records (by eth address)
+	ClaimRecordsEthStorePrefix = "claimrecordsethereum"
+
+	// ClaimRecordsStorePrefix defines the store prefix for the claim records (by thor address)
+	ClaimRecordsThorStorePrefix = "claimrecordsthorchain"
 
 	// ParamsKey defines the store key for claim module parameters
 	ParamsKey = "params"
