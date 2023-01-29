@@ -143,3 +143,47 @@ func TestGetClaimRecordForMutlipleChains(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, coins3, claimRecords[2].InitialClaimableAmount)
 }
+
+func TestSetClaimRecord(t *testing.T) {
+	keeper, ctx := testkeeper.ClaimKeeper(t)
+	airdropStartTime := time.Now()
+	params := types.Params{
+		AirdropStartTime:   airdropStartTime,
+		DurationUntilDecay: types.DefaultDurationUntilDecay,
+		DurationOfDecay:    types.DefaultDurationOfDecay,
+		ClaimDenom:         types.DefaultClaimDenom,
+	}
+	keeper.SetParams(ctx, params)
+
+	// confirm setting a claim record with a bad eth address fails
+	addr1Invalid := "0xDAFEA492D9c6733ae3d56b7Ed1ADB60692c98"  // random invalid eth address
+	addr1Valid := "0xDAFEA492D9c6733ae3d56b7Ed1ADB60692c98Bc5" // random valid eth address
+	claimRecord := types.ClaimRecord{
+		Chain:                  types.ETHEREUM,
+		Address:                addr1Invalid,
+		InitialClaimableAmount: sdk.NewCoins(sdk.NewInt64Coin(types.DefaultClaimDenom, 100)),
+		ActionCompleted:        []bool{false, false},
+	}
+	err := keeper.SetClaimRecord(ctx, claimRecord)
+	require.Error(t, err)
+
+	claimRecord.Address = addr1Valid
+	err = keeper.SetClaimRecord(ctx, claimRecord)
+	require.NoError(t, err)
+
+	// confirm setting a claim record with a bad arkeo address fails
+	addr2Invalid := "0xDAFEA492D9c6733ae3d56b7Ed1ADB60692c98Bc5" // random eth address (should fail)
+	addr2Valid := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+	claimRecord = types.ClaimRecord{
+		Chain:                  types.ARKEO,
+		Address:                addr2Invalid,
+		InitialClaimableAmount: sdk.NewCoins(sdk.NewInt64Coin(types.DefaultClaimDenom, 100)),
+		ActionCompleted:        []bool{false, false},
+	}
+	err = keeper.SetClaimRecord(ctx, claimRecord)
+	require.Error(t, err)
+
+	claimRecord.Address = addr2Valid
+	err = keeper.SetClaimRecord(ctx, claimRecord)
+	require.NoError(t, err)
+}

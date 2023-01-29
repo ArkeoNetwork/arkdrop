@@ -43,5 +43,10 @@ func (msg *MsgClaimEth) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
+
+	if !IsValidEthAddress(msg.EthAddress) {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid eth address (%s)", err)
+	}
+
 	return nil
 }

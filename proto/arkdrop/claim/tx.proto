@@ -8,6 +8,7 @@ option go_package = "github.com/ArkeoNetwork/arkdrop/x/claim/types";
 service Msg {
   rpc ClaimEth (MsgClaimEth) returns (MsgClaimEthResponse);
 }
+
 message MsgClaimEth {
   string creator    = 1;
   string ethAddress = 2; // the adress the claim is for

@@ -17,14 +17,24 @@ func TestMsgClaimEth_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid address",
 			msg: MsgClaimEth{
-				Creator: "invalid_address",
+				Creator:    "invalid_address",
+				EthAddress: "0x0000000000000000000000000000000000000000",
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid address",
 			msg: MsgClaimEth{
-				Creator: sample.AccAddress(),
+				Creator:    sample.AccAddress(),
+				EthAddress: "0x0000000000000000000000000000000000000000",
 			},
+			err: nil,
+		}, {
+			name: "invalid eth address",
+			msg: MsgClaimEth{
+				Creator:    sample.AccAddress(),
+				EthAddress: "invalid_eth_address",
+			},
+			err: sdkerrors.ErrInvalidAddress,
 		},
 	}
 	for _, tt := range tests {

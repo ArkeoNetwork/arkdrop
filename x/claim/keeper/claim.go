@@ -1,11 +1,13 @@
 package keeper
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/ArkeoNetwork/arkdrop/x/claim/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/gogo/protobuf/proto"
 )
 
@@ -20,8 +22,21 @@ func (k Keeper) SetClaimRecord(ctx sdk.Context, claimRecord types.ClaimRecord) e
 	}
 
 	addr := []byte(strings.ToLower(claimRecord.Address))
-	// TODO: should we check validity of address here? would be good to validate
-	// based on the chain.
+
+	// validate address if valid based on chain
+	switch claimRecord.Chain {
+	case types.ETHEREUM:
+		if !types.IsValidEthAddress(claimRecord.Address) {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid eth address (%s)", err)
+		}
+	case types.ARKEO:
+		_, err := sdk.AccAddressFromBech32(claimRecord.Address)
+		if err != nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid arkeo address (%s)", err)
+		}
+	case types.THORCHAIN:
+		return errors.New("thorchain not supported yet")
+	}
 
 	prefixStore.Set(addr, bz)
 	return nil
