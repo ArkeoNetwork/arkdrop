@@ -45,6 +45,5 @@ func (k msgServer) ClaimEth(goCtx context.Context, msg *types.MsgClaimEth) (*typ
 		return nil, errors.Wrapf(err, "failed to set claim record for %s", msg.Creator)
 	}
 
-	// Question: is this atomic? if not, we may run into problems
 	return &types.MsgClaimEthResponse{}, nil
 }
