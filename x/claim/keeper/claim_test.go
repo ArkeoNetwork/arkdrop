@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"testing"
-	"time"
 
 	testkeeper "github.com/ArkeoNetwork/arkdrop/testutil/keeper"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -14,14 +13,6 @@ import (
 
 func TestGetClaimRecordForArkeo(t *testing.T) {
 	keeper, ctx := testkeeper.ClaimKeeper(t)
-	airdropStartTime := time.Now()
-	params := types.Params{
-		AirdropStartTime:   airdropStartTime,
-		DurationUntilDecay: types.DefaultDurationUntilDecay,
-		DurationOfDecay:    types.DefaultDurationOfDecay,
-		ClaimDenom:         types.DefaultClaimDenom,
-	}
-	keeper.SetParams(ctx, params)
 
 	addr1 := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 	addr2 := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
@@ -71,14 +62,6 @@ func TestGetClaimRecordForArkeo(t *testing.T) {
 
 func TestGetClaimRecordForMutlipleChains(t *testing.T) {
 	keeper, ctx := testkeeper.ClaimKeeper(t)
-	airdropStartTime := time.Now()
-	params := types.Params{
-		AirdropStartTime:   airdropStartTime,
-		DurationUntilDecay: types.DefaultDurationUntilDecay,
-		DurationOfDecay:    types.DefaultDurationOfDecay,
-		ClaimDenom:         types.DefaultClaimDenom,
-	}
-	keeper.SetParams(ctx, params)
 
 	addr1 := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 	addr2 := "0xDAFEA492D9c6733ae3d56b7Ed1ADB60692c98Bc5"  // random eth addres
@@ -146,14 +129,6 @@ func TestGetClaimRecordForMutlipleChains(t *testing.T) {
 
 func TestSetClaimRecord(t *testing.T) {
 	keeper, ctx := testkeeper.ClaimKeeper(t)
-	airdropStartTime := time.Now()
-	params := types.Params{
-		AirdropStartTime:   airdropStartTime,
-		DurationUntilDecay: types.DefaultDurationUntilDecay,
-		DurationOfDecay:    types.DefaultDurationOfDecay,
-		ClaimDenom:         types.DefaultClaimDenom,
-	}
-	keeper.SetParams(ctx, params)
 
 	// confirm setting a claim record with a bad eth address fails
 	addr1Invalid := "0xDAFEA492D9c6733ae3d56b7Ed1ADB60692c98"  // random invalid eth address

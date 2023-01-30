@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"testing"
+	"time"
 
 	"github.com/ArkeoNetwork/arkdrop/x/claim/keeper"
 	"github.com/ArkeoNetwork/arkdrop/x/claim/types"
@@ -47,6 +48,15 @@ func ClaimKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 
 	// Initialize params
 	k.SetParams(ctx, types.DefaultParams())
+
+	airdropStartTime := time.Now()
+	params := types.Params{
+		AirdropStartTime:   airdropStartTime,
+		DurationUntilDecay: types.DefaultDurationUntilDecay,
+		DurationOfDecay:    types.DefaultDurationOfDecay,
+		ClaimDenom:         types.DefaultClaimDenom,
+	}
+	k.SetParams(ctx, params)
 
 	return k, ctx
 }
