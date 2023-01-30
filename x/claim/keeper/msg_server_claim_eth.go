@@ -1,11 +1,18 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
+	"encoding/hex"
+	"fmt"
 
 	"github.com/ArkeoNetwork/arkdrop/x/claim/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/signer/core/apitypes"
+	"github.com/pkg/errors"
 )
 
 func (k msgServer) ClaimEth(goCtx context.Context, msg *types.MsgClaimEth) (*types.MsgClaimEthResponse, error) {
@@ -46,4 +53,86 @@ func (k msgServer) ClaimEth(goCtx context.Context, msg *types.MsgClaimEth) (*typ
 	}
 
 	return &types.MsgClaimEthResponse{}, nil
+}
+
+func GenerateClaimTypedDataBytes(ethAddress string, arkeoAddress string, amount string) ([]byte, error) {
+	claimEthAddress := common.HexToAddress(ethAddress)
+	signerTypedData := apitypes.TypedData{
+		Types:       types.EIP712Types,
+		PrimaryType: "Claim",
+		Domain:      types.EIP712Domain,
+		Message: apitypes.TypedDataMessage{
+			"address":      claimEthAddress.String(),
+			"arkeoAddress": arkeoAddress,
+			"amount":       amount,
+		},
+	}
+	typedDataHash, err := signerTypedData.HashStruct(signerTypedData.PrimaryType, signerTypedData.Message)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to hash struct")
+	}
+	domainSeparator, err := signerTypedData.HashStruct("EIP712Domain", signerTypedData.Domain.Map())
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to hash domain")
+	}
+
+	return []byte(fmt.Sprintf("\x19\x01%s%s", string(domainSeparator), string(typedDataHash))), nil
+}
+
+func IsValidClaimSignature(ethAddress string, arkeoAdddress string, amount string, signature string) (bool, error) {
+	rawData, err := GenerateClaimTypedDataBytes(ethAddress, arkeoAdddress, amount)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to generate claim typed data bytes")
+	}
+	rawDataHash := crypto.Keccak256Hash(rawData)
+	sigHex, err := hexDecode(signature)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to hex decode signature")
+	}
+
+	if len(sigHex) != crypto.SignatureLength {
+		return false, fmt.Errorf("signature must be %d bytes long", crypto.SignatureLength)
+	}
+
+	if len(sigHex) != 65 {
+		return false, fmt.Errorf("invalid signature length: %d", len(sigHex))
+	}
+
+	// if sigHex[crypto.RecoveryIDOffset] != 27 && sigHex[crypto.RecoveryIDOffset] != 28 {
+	// 	return false, fmt.Errorf("invalid recovery id: %d", sigHex[64])
+	// }
+	// sigHex[64] -= 27
+
+	pubKeyRaw, err := crypto.Ecrecover(rawDataHash.Bytes(), sigHex)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to recover public key from signature")
+	}
+
+	pubKey, err := crypto.UnmarshalPubkey(pubKeyRaw)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to unmarshal public key from signature")
+	}
+
+	recoveredAddr := crypto.PubkeyToAddress(*pubKey)
+	if !bytes.Equal(common.HexToAddress(ethAddress).Bytes(), recoveredAddr.Bytes()) {
+		return false, errors.New("signature does not match address")
+	}
+	return true, nil
+}
+
+// HexDecode returns the bytes represented by the hexadecimal string s.
+// s may be prefixed with "0x".
+func hexDecode(s string) ([]byte, error) {
+	if has0xPrefix(s) {
+		s = s[2:]
+	}
+	if len(s)%2 == 1 {
+		s = "0" + s
+	}
+	return hex.DecodeString(s)
+}
+
+// Has0xPrefix validates str begins with '0x' or '0X'.
+func has0xPrefix(str string) bool {
+	return len(str) >= 2 && str[0] == '0' && (str[1] == 'x' || str[1] == 'X')
 }

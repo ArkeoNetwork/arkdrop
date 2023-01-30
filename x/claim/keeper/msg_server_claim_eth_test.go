@@ -1,11 +1,16 @@
 package keeper_test
 
 import (
+	"crypto/ecdsa"
+	"strings"
 	"testing"
 
+	"github.com/ArkeoNetwork/arkdrop/x/claim/keeper"
 	"github.com/ArkeoNetwork/arkdrop/x/claim/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 )
 
@@ -48,4 +53,41 @@ func TestClaimEth(t *testing.T) {
 	require.Equal(t, claimRecord.InitialClaimableAmount, sdk.NewCoins(sdk.NewInt64Coin(types.DefaultClaimDenom, 100)))
 	require.False(t, claimRecord.ActionCompleted[types.ActionVote])
 	require.False(t, claimRecord.ActionCompleted[types.ActionDelegateStake])
+}
+
+func TestIsValidClaimSignature(t *testing.T) {
+	// generate a random eth address
+	privateKey, err := crypto.GenerateKey()
+	require.NoError(t, err)
+	publicKey := privateKey.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	require.True(t, ok)
+	addressEth := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
+	addrArkeo := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+
+	message, err := keeper.GenerateClaimTypedDataBytes(addressEth, addrArkeo, "5000")
+	require.NoError(t, err)
+	hash := crypto.Keccak256(message)
+	signature, err := crypto.Sign(hash, privateKey)
+	require.NoError(t, err)
+
+	sigString := hexutil.Encode(signature)
+
+	// check if signature is valid
+	valid, err := keeper.IsValidClaimSignature(strings.ToLower(addressEth), addrArkeo, "5000", sigString)
+	require.NoError(t, err)
+	require.True(t, valid)
+
+	// if we modify the message, signature should be invalid
+	_, err = keeper.IsValidClaimSignature(addressEth, addrArkeo, "5001", sigString)
+	require.Error(t, err)
+
+	// if we modify the arkeo address, signature should be invalid
+	addrArkeo2 := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+	_, err = keeper.IsValidClaimSignature(addressEth, addrArkeo2, "5000", sigString)
+	require.Error(t, err)
+
+	// if we modify the eth address, signature should be invalid
+	_, err = keeper.IsValidClaimSignature("0xbd3afb0bb76683ecb4225f9dbc91f998713c3b01", addrArkeo, "5000", sigString)
+	require.Error(t, err)
 }
