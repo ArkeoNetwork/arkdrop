@@ -28,10 +28,21 @@ func (k msgServer) ClaimEth(goCtx context.Context, msg *types.MsgClaimEth) (*typ
 	}
 
 	// 2. check if already claimed
-	if ethClaim.ActionCompleted[0] {
+	if ethClaim.ActionCompleted[types.ForeignChainActionClaim] {
 		return nil, errors.Wrapf(err, "already claimed for %s", msg.EthAddress)
 	}
-	// 3. validate signature (TODO: implement)
+
+	// 3. validate signature
+	isValid, err := IsValidClaimSignature(msg.EthAddress, msg.Creator,
+		ethClaim.InitialClaimableAmount.AmountOf(types.DefaultClaimDenom).String(), msg.Signature)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to validate signature for %s", msg.EthAddress)
+	}
+
+	if !isValid {
+		// this shouldn't happen without an error, but just in case
+		return nil, errors.New("invalid signature")
+	}
 
 	// set eth claim to completed
 	ethClaim.ActionCompleted[types.ForeignChainActionClaim] = true

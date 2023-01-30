@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"crypto/ecdsa"
+	"errors"
 	"strings"
 	"testing"
 
@@ -21,6 +22,8 @@ func TestClaimEth(t *testing.T) {
 	// create valid eth claimrecords
 	addrEth := "0xDAFEA492D9c6733ae3d56b7Ed1ADB60692c98Bc5" // random invalid eth address
 	addrArkeo := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+	addrEth, sigString, err := generateSignedEthClaim(addrArkeo, "100")
+	require.NoError(t, err)
 
 	claimRecord := types.ClaimRecord{
 		Chain:                  types.ETHEREUM,
@@ -28,13 +31,13 @@ func TestClaimEth(t *testing.T) {
 		InitialClaimableAmount: sdk.NewCoins(sdk.NewInt64Coin(types.DefaultClaimDenom, 100)),
 		ActionCompleted:        []bool{false, false},
 	}
-	err := keeper.SetClaimRecord(sdkCtx, claimRecord)
+	err = keeper.SetClaimRecord(sdkCtx, claimRecord)
 	require.NoError(t, err)
 
 	claimMessage := types.MsgClaimEth{
 		Creator:    addrArkeo,
 		EthAddress: addrEth,
-		Signature:  "",
+		Signature:  sigString,
 	}
 
 	_, err = msgServer.ClaimEth(ctx, &claimMessage)
@@ -57,21 +60,9 @@ func TestClaimEth(t *testing.T) {
 
 func TestIsValidClaimSignature(t *testing.T) {
 	// generate a random eth address
-	privateKey, err := crypto.GenerateKey()
-	require.NoError(t, err)
-	publicKey := privateKey.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	require.True(t, ok)
-	addressEth := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
 	addrArkeo := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-
-	message, err := keeper.GenerateClaimTypedDataBytes(addressEth, addrArkeo, "5000")
+	addressEth, sigString, err := generateSignedEthClaim(addrArkeo, "5000")
 	require.NoError(t, err)
-	hash := crypto.Keccak256(message)
-	signature, err := crypto.Sign(hash, privateKey)
-	require.NoError(t, err)
-
-	sigString := hexutil.Encode(signature)
 
 	// check if signature is valid
 	valid, err := keeper.IsValidClaimSignature(strings.ToLower(addressEth), addrArkeo, "5000", sigString)
@@ -90,4 +81,30 @@ func TestIsValidClaimSignature(t *testing.T) {
 	// if we modify the eth address, signature should be invalid
 	_, err = keeper.IsValidClaimSignature("0xbd3afb0bb76683ecb4225f9dbc91f998713c3b01", addrArkeo, "5000", sigString)
 	require.Error(t, err)
+}
+
+func generateSignedEthClaim(addrArkeo string, amount string) (string, string, error) {
+	// generate a random eth address
+	privateKey, err := crypto.GenerateKey()
+	if err != nil {
+		return "", "", err
+	}
+	publicKey := privateKey.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		return "", "", errors.New("error casting public key to ECDSA")
+	}
+
+	addressEth := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
+	message, err := keeper.GenerateClaimTypedDataBytes(addressEth, addrArkeo, amount)
+	if err != nil {
+		return "", "", err
+	}
+	hash := crypto.Keccak256(message)
+	signature, err := crypto.Sign(hash, privateKey)
+	if err != nil {
+		return "", "", err
+	}
+	sigString := hexutil.Encode(signature)
+	return addressEth, sigString, nil
 }
