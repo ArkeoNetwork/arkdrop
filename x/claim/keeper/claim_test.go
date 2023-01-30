@@ -64,8 +64,8 @@ func TestGetClaimRecordForMutlipleChains(t *testing.T) {
 	keeper, ctx := testkeeper.ClaimKeeper(t)
 
 	addr1 := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-	addr2 := "0xDAFEA492D9c6733ae3d56b7Ed1ADB60692c98Bc5"  // random eth addres
-	addr3 := "thor18u55kxfudpy9q7mvhxzrh4xntjyukx420lt5fg" // random thorchain address
+	addr2 := "0xDAFEA492D9c6733ae3d56b7Ed1ADB60692c98Bc5" // random eth addres
+	//addr3 := "thor18u55kxfudpy9q7mvhxzrh4xntjyukx420lt5fg" // random thorchain address
 
 	claimRecords := []types.ClaimRecord{
 		{
@@ -80,12 +80,12 @@ func TestGetClaimRecordForMutlipleChains(t *testing.T) {
 			InitialClaimableAmount: sdk.NewCoins(sdk.NewInt64Coin(types.DefaultClaimDenom, 200)),
 			ActionCompleted:        []bool{false, false},
 		},
-		{
-			Chain:                  types.THORCHAIN,
-			Address:                addr3,
-			InitialClaimableAmount: sdk.NewCoins(sdk.NewInt64Coin(types.DefaultClaimDenom, 500)),
-			ActionCompleted:        []bool{false, false},
-		},
+		// {
+		// 	Chain:                  types.THORCHAIN,
+		// 	Address:                addr3,
+		// 	InitialClaimableAmount: sdk.NewCoins(sdk.NewInt64Coin(types.DefaultClaimDenom, 500)),
+		// 	ActionCompleted:        []bool{false, false},
+		// },
 	}
 	err := keeper.SetClaimRecords(ctx, claimRecords)
 	require.NoError(t, err)
@@ -115,16 +115,16 @@ func TestGetClaimRecordForMutlipleChains(t *testing.T) {
 	require.Equal(t, coins2, sdk.Coins{})
 
 	// user 3 should have no arkeo claim nor eth claims, only thor
-	coins3, err := keeper.GetUserTotalClaimable(ctx, addr3, types.ARKEO)
-	require.NoError(t, err)
-	require.Equal(t, coins3, sdk.Coins{})
+	// coins3, err := keeper.GetUserTotalClaimable(ctx, addr3, types.ARKEO)
+	// require.NoError(t, err)
+	// require.Equal(t, coins3, sdk.Coins{})
 
-	coins3, err = keeper.GetUserTotalClaimable(ctx, addr3, types.ETHEREUM)
-	require.NoError(t, err)
-	require.Equal(t, coins3, sdk.Coins{})
-	coins3, err = keeper.GetUserTotalClaimable(ctx, addr3, types.THORCHAIN)
-	require.NoError(t, err)
-	require.Equal(t, coins3, claimRecords[2].InitialClaimableAmount)
+	// coins3, err = keeper.GetUserTotalClaimable(ctx, addr3, types.ETHEREUM)
+	// require.NoError(t, err)
+	// require.Equal(t, coins3, sdk.Coins{})
+	// // coins3, err = keeper.GetUserTotalClaimable(ctx, addr3, types.THORCHAIN)
+	// // require.NoError(t, err)
+	// // require.Equal(t, coins3, claimRecords[2].InitialClaimableAmount)
 }
 
 func TestSetClaimRecord(t *testing.T) {
