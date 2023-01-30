@@ -13,6 +13,12 @@ enum Action {
   ActionDelegateStake = 1;
 }
 
+enum ForeignChainAction {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  ForeignChainActionClaim = 0;
+}
+
 enum Chain {
   option (gogoproto.goproto_enum_prefix) = false;
 

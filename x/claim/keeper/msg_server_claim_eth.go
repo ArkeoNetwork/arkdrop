@@ -27,7 +27,7 @@ func (k msgServer) ClaimEth(goCtx context.Context, msg *types.MsgClaimEth) (*typ
 	// 3. validate signature (TODO: implement)
 
 	// set eth claim to completed
-	ethClaim.ActionCompleted[0] = true
+	ethClaim.ActionCompleted[types.ForeignChainActionClaim] = true
 	err = k.SetClaimRecord(ctx, ethClaim)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to set claim record for %s", msg.EthAddress)
