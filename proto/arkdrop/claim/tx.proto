@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package arkeonetwork.arkdrop.claim;
+
+option go_package = "github.com/ArkeoNetwork/arkdrop/x/claim/types";
+
+// Msg defines the Msg service.
+service Msg {
+  rpc ClaimEth (MsgClaimEth) returns (MsgClaimEthResponse);
+}
+
+message MsgClaimEth {
+  string creator    = 1;
+  string ethAddress = 2; // the adress the claim is for
+  string signature  = 3; // EIP712 signature that has to be signed by ethAddress
+}
+
+message MsgClaimEthResponse {}
+

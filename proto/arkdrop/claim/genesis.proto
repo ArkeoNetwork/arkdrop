@@ -1,0 +1,12 @@
+syntax = "proto3";
+package arkeonetwork.arkdrop.claim;
+
+import "gogoproto/gogo.proto";
+import "arkdrop/claim/params.proto";
+
+option go_package = "github.com/ArkeoNetwork/arkdrop/x/claim/types";
+
+// GenesisState defines the claim module's genesis state.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+}
